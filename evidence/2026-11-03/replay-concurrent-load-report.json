@@ -1,0 +1,63 @@
+{
+  "provenance": "authored synthetic PointCloud2; not Unitree hardware capture",
+  "checks": {
+    "0": {
+      "expected": "clear",
+      "seen": [
+        "clear",
+        "unknown"
+      ],
+      "pass": false
+    },
+    "1": {
+      "expected": "blocked",
+      "seen": [
+        "blocked"
+      ],
+      "pass": true
+    },
+    "2": {
+      "expected": "unknown",
+      "seen": [
+        "unknown"
+      ],
+      "pass": true
+    },
+    "3": {
+      "expected": "unknown",
+      "seen": [
+        "unknown"
+      ],
+      "pass": true
+    },
+    "4": {
+      "expected": "clear",
+      "seen": [
+        "clear",
+        "unknown"
+      ],
+      "pass": false
+    },
+    "5": {
+      "expected": "unknown",
+      "seen": [
+        "unknown"
+      ],
+      "pass": true
+    },
+    "6": {
+      "expected": "unknown",
+      "seen": [
+        "unknown"
+      ],
+      "pass": true
+    },
+    "tf_translation": {
+      "pass": true
+    },
+    "receive_timeout": {
+      "pass": true
+    }
+  },
+  "messages": 139
+}

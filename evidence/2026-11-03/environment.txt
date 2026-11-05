@@ -1,0 +1,8 @@
+Tue Nov  3 08:21:52 PM UTC 2026
+Python 3.12.3
+6.8.0-117-generic
+45633014a14e8f438495b532a723e4ad45cbbd31
+ros-jazzy-gz-sim-vendor	0.0.13-1noble.20260905.073557
+ros-jazzy-rclpy	7.1.12-1noble.20260912.162354
+ros-jazzy-ros-gz	1.0.24-1noble.20261006.041805
+ros-jazzy-rosbag2	0.26.11-1noble.20261006.034645

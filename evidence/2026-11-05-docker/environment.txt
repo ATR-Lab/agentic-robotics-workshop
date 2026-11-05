@@ -1,0 +1,22 @@
+# Docker station environment, 2026-11-05
+
+## macOS host
+macOS 27.2, Apple M3 Max; Docker engine via OrbStack: 29.4.0 linux/arm64
+image sha256:a53b58dd51e9f90fd1496dc7e271c1f845fd5ee25f2479f3fe9459a859eec9af arm64
+
+## Ubuntu host
+Ubuntu 26.04.1 LTS x86_64, kernel 7.0.0-38-generic; Docker engine 29.9.2 linux/amd64
+image sha256:7a05901e16ab366a4f2469fa6f93d5c745b5b5e34e98f8bba882b83baf6c4505 amd64
+
+## Windows host
+Microsoft Windows [Version 10.0.26300.9711]
+Windows 11 ARM64 in Parallels Desktop 27.1.0; Python 3.13.17 (arm64), Git 2.56.0.windows.4; no Docker (nested virtualization crashes this VM at boot)
+
+## Image contents (from the arm64 image)
+base ros:jazzy-ros-base-noble@sha256:8eed0a4669bbf43ee331878a4c39bd8ebddea8e3312a58b4fae8edb14526b617
+ros-jazzy-rclpy 7.1.12-1noble.20260911.111116
+ros-jazzy-robot-state-publisher 3.3.4-1noble.20260916.083553
+ros-jazzy-ros-gz 1.0.24-1noble.20261006.044318
+ros-jazzy-rosbag2 0.26.11-1noble.20261006.034453
+ros-jazzy-turtlebot3-description 2.3.6-1noble.20260911.051459
+45633014a14e8f438495b532a723e4ad45cbbd31

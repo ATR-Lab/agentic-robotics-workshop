@@ -1,0 +1,4 @@
+# Bash and Python must keep LF endings when the folder is cloned on Windows.
+*.sh text eol=lf
+*.py text eol=lf
+lab/docker/Dockerfile text eol=lf

@@ -1,0 +1,36 @@
+Lab doctor report 2026-11-04T20:05:09
+host=box-node-96d97a50244a7995 os=Linux-6.8.0-117-generic-x86_64-with-glibc2.39 python=3.12.3 folder=/home/user/workshop
+shell=/bin/bash ros_ws=/home/user/ros_ws ros_distro=jazzy
+
+[00 check · whole-lab doctor]
+PASS Linux 6.8.0-117-generic (x86_64)
+PASS Python 3.12.3 at /usr/bin/python3
+PASS can write results to /home/user/workshop/runs
+PASS git version 2.43.0
+WARN Git has no user.email; the lab will commit as "Workshop participant"
+  fix: optional:  git config --global user.name "Your Name"  and  git config --global user.email you@example.com
+INFO Git repository with commits
+PASS coding agent CLI on PATH: claude, codex
+INFO ROS 2 station detected; checking steps 03 and 04
+
+[01 reproduce · doctor]
+PASS exercises/clearance.py parses
+PASS baseline ready
+
+[03 replay · doctor (ROS 2 station)]
+PASS Ubuntu 24.04 (noble)
+PASS ROS 2 jazzy found
+PASS agentic_workshop at /home/user/ros_ws/install/agentic_workshop
+PASS rclpy, sensor_msgs_py and rosbag2_py import
+PASS no leftover replay or simulator processes
+PASS ROS domain 77 is free
+
+[04 simulate · doctor (ROS 2 station)]
+PASS Ubuntu 24.04 (noble)
+PASS ROS 2 jazzy found
+PASS agentic_workshop at /home/user/ros_ws/install/agentic_workshop
+PASS turtlebot3_gazebo at /home/user/ros_ws/install/turtlebot3_gazebo
+PASS rclpy, sensor_msgs_py and rosbag2_py import
+PASS Gazebo 8.15.0
+PASS no leftover replay or simulator processes
+PASS ROS domain 78 is free

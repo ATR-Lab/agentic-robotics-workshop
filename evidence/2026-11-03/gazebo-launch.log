@@ -1,0 +1,26 @@
+[INFO] [launch]: All log files can be found below /home/user/.ros/log/2026-11-03-20-20-22-224572-box-node-e406a105c7cdf966-50550
+[INFO] [launch]: Default logging verbosity is set to INFO
+urdf_file_name : turtlebot3_burger.urdf
+[INFO] [gazebo-1]: process started with pid [50648]
+[INFO] [robot_state_publisher-2]: process started with pid [50649]
+[INFO] [create-3]: process started with pid [50651]
+[INFO] [parameter_bridge-4]: process started with pid [50652]
+[INFO] [parameter_bridge-5]: process started with pid [50653]
+[INFO] [scan_relay-6]: process started with pid [50656]
+[INFO] [command_guard-7]: process started with pid [50657]
+[INFO] [bounded_controller-8]: process started with pid [50658]
+[create-3] [INFO] [1793737230.297541914] [ros_gz_sim]: Requesting list of world names.
+[robot_state_publisher-2] [INFO] [1793737231.083551489] [robot_state_publisher]: Robot initialized
+[parameter_bridge-5] [INFO] [1793737232.176517139] [ros_gz_bridge]: Creating ROS->GZ Bridge: [/cmd_vel (geometry_msgs/msg/TwistStamped) -> /cmd_vel (gz.msgs.Twist)] (Lazy 0)
+[parameter_bridge-4] [INFO] [1793737233.261120144] [ros_gz_bridge]: Creating GZ->ROS Bridge: [/clock (gz.msgs.Clock) -> /clock (rosgraph_msgs/msg/Clock)] (Lazy 0)
+[parameter_bridge-4] [INFO] [1793737233.299785911] [ros_gz_bridge]: Creating GZ->ROS Bridge: [/scan (gz.msgs.LaserScan) -> /scan (sensor_msgs/msg/LaserScan)] (Lazy 0)
+[parameter_bridge-4] [INFO] [1793737233.320290350] [ros_gz_bridge]: Creating GZ->ROS Bridge: [/odom (gz.msgs.Odometry) -> /odom (nav_msgs/msg/Odometry)] (Lazy 0)
+[parameter_bridge-4] [INFO] [1793737233.357338831] [ros_gz_bridge]: Creating GZ->ROS Bridge: [/tf (gz.msgs.Pose_V) -> /tf (tf2_msgs/msg/TFMessage)] (Lazy 0)
+[parameter_bridge-4] [INFO] [1793737233.392321355] [ros_gz_bridge]: Creating GZ->ROS Bridge: [/joint_states (gz.msgs.Model) -> /joint_states (sensor_msgs/msg/JointState)] (Lazy 0)
+[create-3] [INFO] [1793737235.307618072] [ros_gz_sim]: Requesting list of world names.
+[parameter_bridge-5] [INFO] [1793737236.145271074] [ros_gz_bridge]: Passing message from ROS geometry_msgs/msg/TwistStamped to Gazebo gz.msgs.Twist (showing msg only once per type)
+[create-3] [INFO] [1793737240.542179543] [ros_gz_sim]: Requesting list of world names.
+[create-3] [INFO] [1793737245.773549066] [ros_gz_sim]: Requesting list of world names.
+[create-3] [INFO] [1793737247.587272162] [ros_gz_sim]: Entity creation successful.
+[INFO] [create-3]: process has finished cleanly [pid 50651]
+[gazebo-1] [1;33mWarning [Utils.cc:132][0m [/sdf/model[@name="turtlebot3_burger"]/link[@name="base_scan"]/sensor[@name="hls_lfcd_lds"]/gz_frame_id:/home/user/ros_ws/install/turtlebot3_gazebo/share/turtlebot3_gazebo/models/turtlebot3_burger/model.sdf:L141]: XML Element[gz_frame_id], child of element[sensor], not defined in SDF. Copying[gz_frame_id] as children of [sensor].

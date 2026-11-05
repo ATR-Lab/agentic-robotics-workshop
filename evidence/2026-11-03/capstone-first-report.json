@@ -1,0 +1,131 @@
+{
+  "provenance": "Gazebo TurtleBot3 Burger simulation",
+  "complete": true,
+  "results": [
+    {
+      "scenario": "clear_path_distance_bound",
+      "pass": true,
+      "status": {
+        "pid": 47911,
+        "state": "stopped",
+        "reason": "distance_bound",
+        "command": 0.0,
+        "distance": 0.45624999999994764,
+        "gap": 0.781108180896459,
+        "wall_time": 1793737135.7545934
+      },
+      "observed_displacement": 0.45624999999994764
+    },
+    {
+      "scenario": "obstacle_stop",
+      "pass": true,
+      "status": {
+        "pid": 47911,
+        "state": "stopped",
+        "reason": "obstacle",
+        "command": 0.0,
+        "distance": 0.48895000000002253,
+        "gap": 0.2922840837839039,
+        "wall_time": 1793737142.1540897
+      },
+      "observed_position": [
+        0.9452000096008006,
+        1.7902634703777043e-12
+      ]
+    },
+    {
+      "scenario": "scan_drop",
+      "pass": true,
+      "status": {
+        "pid": 47911,
+        "state": "fault",
+        "reason": "sensing_or_tf",
+        "command": 0.0,
+        "distance": 0.04454999999997489,
+        "gap": 2.8870350914001466,
+        "wall_time": 1793737144.654184
+      },
+      "stopped_position": [
+        0.9897500096007923,
+        1.889386458670354e-12
+      ]
+    },
+    {
+      "scenario": "scan_invalid",
+      "pass": true,
+      "status": {
+        "pid": 47911,
+        "state": "fault",
+        "reason": "sensing_or_tf",
+        "command": 0.0,
+        "distance": 0.025049999999928296,
+        "gap": null,
+        "wall_time": 1793737146.8039298
+      },
+      "stopped_position": [
+        1.0148000096007053,
+        1.9530589676040497e-12
+      ]
+    },
+    {
+      "scenario": "scan_missing_tf",
+      "pass": true,
+      "status": {
+        "pid": 47911,
+        "state": "fault",
+        "reason": "sensing_or_tf",
+        "command": 0.0,
+        "distance": 0.02004999999992818,
+        "gap": null,
+        "wall_time": 1793737149.1044908
+      },
+      "stopped_position": [
+        1.0348500096005842,
+        2.0096049334316994e-12
+      ]
+    },
+    {
+      "scenario": "operator_stop",
+      "pass": true,
+      "status": {
+        "pid": 47911,
+        "state": "stopped",
+        "reason": "operator_stop",
+        "command": 0.0,
+        "distance": 0.01505000000099277,
+        "gap": 2.7930426193336255,
+        "wall_time": 1793737150.6539629
+      }
+    },
+    {
+      "scenario": "time_bound",
+      "pass": true,
+      "status": {
+        "pid": 47911,
+        "state": "stopped",
+        "reason": "time_bound",
+        "command": 0.0,
+        "distance": 0.04164999999829999,
+        "gap": 2.7532344047085666,
+        "wall_time": 1793737151.804192
+      }
+    },
+    {
+      "scenario": "controller_process_loss_watchdog",
+      "pass": true,
+      "status": {
+        "pid": 47911,
+        "state": "advance",
+        "reason": "running",
+        "command": 0.1,
+        "distance": 0.00664999999814464,
+        "gap": 2.7451623417366764,
+        "wall_time": 1793737152.6040342
+      },
+      "stopped_position": [
+        1.1348000096019648,
+        2.215610702132055e-12
+      ]
+    }
+  ]
+}

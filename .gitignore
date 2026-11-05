@@ -1,0 +1,13 @@
+.DS_Store
+.env
+.env.*
+__pycache__/
+*.pyc
+.venv/
+build/
+install/
+log/
+recordings/
+runs/
+*.db3
+*.mcap

@@ -1,0 +1,5 @@
+# Only lab/docker/Dockerfile builds from this folder, and it needs only the ROS package.
+*
+!ros2/agentic_workshop/
+**/__pycache__
+**/*.pyc
