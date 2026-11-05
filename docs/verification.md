@@ -26,7 +26,7 @@ The same scripts and the talk's demo commands were then run on an Apple Silicon 
 
 ## Docker station — November 5, 2026
 
-Steps 03 and 04 also run in a container built from `lab/docker/Dockerfile`, for laptops with Docker and no native ROS 2. Replay passed 9/9 and simulation 10/10 through Docker on macOS (arm64) and Ubuntu 26.04 (x86-64), with no container left after Ctrl-C. The laptop steps passed on Windows 11 ARM64. Docker Desktop on Windows was not tested: the Windows VM crashed at boot with nested virtualization on. Details: [evidence/2026-11-05-docker](../evidence/2026-11-05-docker/README.md).
+Steps 03 and 04 also run in a container built from `lab/docker/Dockerfile`, for laptops with Docker and no native ROS 2. Replay passed 9/9 and simulation 10/10 through Docker on macOS (arm64) and Ubuntu 26.04 (x86-64), with no container left after Ctrl-C. The laptop steps passed on Windows 11 ARM64. Docker Desktop on Windows was not tested: the Windows VM crashed at boot with nested virtualization on. After the package was made public, steps 00, 03 and 04 passed again from a fresh clone of the public repository on both hosts, with the image pulled without signing in. Details: [evidence/2026-11-05-docker](../evidence/2026-11-05-docker/README.md).
 
 ## Findings incorporated into the implementation
 

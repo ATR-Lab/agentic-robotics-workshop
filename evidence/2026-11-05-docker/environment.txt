@@ -8,6 +8,11 @@ image sha256:a53b58dd51e9f90fd1496dc7e271c1f845fd5ee25f2479f3fe9459a859eec9af ar
 Ubuntu 26.04.1 LTS x86_64, kernel 7.0.0-38-generic; Docker engine 29.9.2 linux/amd64
 image sha256:7a05901e16ab366a4f2469fa6f93d5c745b5b5e34e98f8bba882b83baf6c4505 amd64
 
+## Published image (pulled without signing in, Nov. 5)
+ghcr.io/atr-lab/agentic-workshop-station:2026.11 index sha256:7f48d30c1c21302ac84ef472ad7b1ddf6764fb95471b31cbcbffa2c4b2905f07
+arm64 manifest sha256:d601aaec8503756a61cdfb90429c30647bc2ebf36e14db44443e0f0f2cb82dcb (1.12 GB compressed)
+amd64 manifest sha256:e999eb0ade66713a4430949141b3b8cfda3d7b15789a3978a1e79473a5103edb (1.22 GB compressed)
+
 ## Windows host
 Microsoft Windows [Version 10.0.26300.9711]
 Windows 11 ARM64 in Parallels Desktop 27.1.0; Python 3.13.17 (arm64), Git 2.56.0.windows.4; no Docker (nested virtualization crashes this VM at boot)

@@ -34,5 +34,7 @@ RUN ln -s /home/user/sim_ws/src/turtlebot3_simulations/turtlebot3_gazebo ros_ws/
 # container runs as the host user, so the workspace path is fixed here.
 ENV LAB_STATION=native LAB_ROS_WS=/home/user/ros_ws PYTHONDONTWRITEBYTECODE=1
 LABEL org.opencontainers.image.title="Agentic robotics workshop station" \
-      org.opencontainers.image.description="ROS 2 Jazzy, Gazebo and the agentic_workshop package for lab steps 03 and 04"
+      org.opencontainers.image.description="ROS 2 Jazzy, Gazebo and the agentic_workshop package for lab steps 03 and 04" \
+      org.opencontainers.image.source="https://github.com/ATR-Lab/agentic-robotics-workshop" \
+      org.opencontainers.image.licenses="MIT"
 WORKDIR /home/user/workshop

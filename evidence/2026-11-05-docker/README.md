@@ -12,6 +12,7 @@ Lab steps 03 and 04 now run in a container built from `lab/docker/Dockerfile` wh
 | Ubuntu | Docker | A container named `atr-lab-04` left running, then `doctor`, `clean`, `doctor` | FAIL naming the container; removed; PASS |
 | Ubuntu | Docker | Results written through the bind mount | Owned by the host user (uid 1000) |
 | OrbStack Ubuntu 24.04 arm64 machine | Native | `03-replay.sh`, `04-simulate.sh` with the final `lab.py` | 9/9; 10/10 |
+| macOS and Ubuntu | Docker | Fresh `git clone` of the public repository; image pulled from GHCR with an empty Docker config (no sign-in); steps 00, 03, 04 | No FAIL or WARN; 9/9 and 10/10 on both; no container or `__pycache__` left |
 | Windows 11 ARM64 (Parallels), Git Bash and `py -3` from Command Prompt | Laptop steps | 00, 01, 02, 05; 03 and 04 doctor without Docker | 10/12 then 12/12; report drafted; FAIL naming Docker as the fix |
 
 ## Bugs found and fixed

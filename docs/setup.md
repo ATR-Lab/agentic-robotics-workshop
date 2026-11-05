@@ -27,8 +27,11 @@ docker save ghcr.io/atr-lab/agentic-workshop-station:2026.11 | gzip > agentic-wo
 When `ros2/agentic_workshop` changes, publish a new tag and update `IMAGE` in `lab/lab.py`. From the workshop folder, with a Buildx builder that has an arm64 and an amd64 node (each building natively) and a GitHub login with `write:packages`:
 
 ```bash
-docker buildx build --builder <builder> --platform linux/arm64,linux/amd64 -t ghcr.io/atr-lab/agentic-workshop-station:<new tag> -f lab/docker/Dockerfile --push .
+docker buildx build --builder <builder> --platform linux/arm64,linux/amd64 -t ghcr.io/atr-lab/agentic-workshop-station:<new tag> -f lab/docker/Dockerfile \
+  --annotation 'index:org.opencontainers.image.source=https://github.com/ATR-Lab/agentic-robotics-workshop' --push .
 ```
+
+The `index:` annotation links the package to this repository on GitHub; the Dockerfile's matching label covers single-architecture builds.
 
 Windows laptops need hardware virtualization for Docker Desktop's WSL 2 backend. A Windows virtual machine without nested virtualization cannot run it; pair that participant with a neighbour or an assigned station.
 

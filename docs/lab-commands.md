@@ -10,13 +10,13 @@ The lab runs 2–3 p.m. in six steps, one script each. This sheet gives the exac
 | Docker, for steps 03–04 | [Docker Desktop](https://docs.docker.com/desktop/) or [OrbStack](https://orbstack.dev) | [Docker Engine](https://docs.docker.com/engine/install/), then `sudo usermod -aG docker $USER` and log out and back in | [Docker Desktop](https://docs.docker.com/desktop/) with the WSL 2 backend; needs virtualization turned on |
 | Coding agent | Codex or Claude Code, signed in | same | same |
 
-Start Docker, give it at least 4 GB of memory (Docker Desktop: Settings › Resources) and keep about 6 GB of disk free. Then pull the station image, about 1.2 GB:
+Start Docker, give it at least 4 GB of memory (Docker Desktop: Settings › Resources) and keep about 6 GB of disk free. Then pull the station image, about 1.2 GB. It is public, so no sign-in is needed:
 
 ```bash
 docker pull ghcr.io/atr-lab/agentic-workshop-station:2026.11
 ```
 
-If the pull says `denied` or `unauthorized`, build the image from the workshop folder instead (about 10 minutes):
+If you cannot reach the registry (no internet, or a network that blocks it), build the image from the workshop folder instead (about 10 minutes):
 
 ```bash
 docker build -t ghcr.io/atr-lab/agentic-workshop-station:2026.11 -f lab/docker/Dockerfile .
@@ -74,6 +74,7 @@ First, run the same step with `doctor` and follow its `Fix:` line. If that doesn
 | `the docker command was not found` | Docker not installed | Install it (table above); or pair with a neighbour for steps 03–04 |
 | `Docker is installed but its engine is not running` | Docker Desktop or OrbStack closed; Linux service stopped | Start it and wait until it says running; Linux: `sudo systemctl start docker` |
 | `permission denied` from Docker (Linux) | Not in the `docker` group | `sudo usermod -aG docker $USER`, then log out and back in |
+| `docker pull` says `denied` or `unauthorized` | An old GitHub sign-in saved in Docker | `docker logout ghcr.io`, then pull again |
 | `the station image ... is not on this computer` | Image not pulled | `docker pull ghcr.io/atr-lab/agentic-workshop-station:2026.11`, or the build command above |
 | `Docker may use only N GB of memory` | Docker's memory limit is low | Raise it to 4 GB or more in Docker Desktop's Settings › Resources |
 | `an earlier lab container is still running` | A run was killed from outside | `bash lab/04-simulate.sh clean` (or `py -3 lab\lab.py 04 clean`) |
@@ -85,4 +86,4 @@ No physical sensor or robot is used in any step. Steps 03 and 04 run the package
 
 ## Tested so far
 
-November 4–5, 2026: all six steps on macOS (Apple Silicon, Docker through OrbStack) and Ubuntu 26.04 (x86-64, Docker Engine); steps 00, 01, 02 and 05 on Windows 11 ARM64 with Git Bash and with `py -3`. Not yet tested: Docker Desktop on Windows and on macOS. Details: [verification](verification.md).
+November 4–5, 2026: all six steps on macOS (Apple Silicon, Docker through OrbStack) and Ubuntu 26.04 (x86-64, Docker Engine); steps 00, 01, 02 and 05 on Windows 11 ARM64 with Git Bash and with `py -3`. Steps 00, 03 and 04 again from a fresh clone of the public repository, with the image pulled without signing in, on the same Mac and Ubuntu computer. Not yet tested: Docker Desktop on Windows and on macOS. Details: [verification](verification.md).

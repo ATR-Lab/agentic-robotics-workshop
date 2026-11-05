@@ -51,7 +51,7 @@ bash lab/03-replay.sh
 bash lab/04-simulate.sh
 ```
 
-If the image cannot be pulled, build it from this folder with `docker build -t ghcr.io/atr-lab/agentic-workshop-station:2026.11 -f lab/docker/Dockerfile .` (about 10 minutes). The [command sheet](docs/lab-commands.md) covers every operating system and the problems people hit most.
+The image is public, so no sign-in is needed. Without access to the registry, build it from this folder with `docker build -t ghcr.io/atr-lab/agentic-workshop-station:2026.11 -f lab/docker/Dockerfile .` (about 10 minutes). The [command sheet](docs/lab-commands.md) covers every operating system and the problems people hit most.
 
 ## What's inside
 
