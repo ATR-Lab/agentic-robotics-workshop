@@ -65,6 +65,19 @@ On a laptop with Docker it runs in the station container; on a ROS 2 station it 
 
 Read one check aloud with your partner: which field of the message decided it? The offline checker did not test PointCloud2 decoding, QoS or TF; this step does.
 
+### Steps 03–05 with Claude Code
+
+Nothing from here on needs an edit, so keep Claude Code in plan mode (Shift+Tab) and type `/clear` at the start of each step. Start each step in the second terminal first, then ask Claude while it runs. Edits under `ros2/` do not change these runs: the station runs its own built copy of the package. If a step fails, run its `doctor`; do not ask the agent to change ROS code.
+
+| Clock | Part | In Claude Code | Done when |
+|---|---|---|---|
+| 2:30 | 1 Start | Second terminal: `bash lab/03-replay.sh` (about 30 s) | `replay: 9/9 checks pass` |
+| 2:30 | 2 Read the code | "Read ros2/agentic_workshop/agentic_workshop/replay_demo.py and cloud.py. List the replay phases in order, what each publishes and which state the workbook contract expects for each." | You know what each phase sends |
+| 2:33 | 3 Read your report | The report numbers most checks. "Open my latest replay-report.json in runs/03-replay. Which phase is check 3? Show me the lines in cloud.py that decided it and which message fields (point_step, row_step, is_bigendian, header stamp, TF) mattered." Open those lines yourself. | You can read one check aloud with its deciding field |
+| 2:36 | 4 Compare with step 02 | "Which of these nine checks does exercises/check.py not test? How could my offline fix pass while a ROS cloud still decodes wrong?" | You can name decoding, QoS, TF, clock and reception timeout |
+
+The bag is authored synthetic data, not a Unitree capture; correct the agent if it says otherwise, and ask it to quote the report rather than describe results it has not opened. Finished early: "Using skills/unilidar-replay/SKILL.md, list what you would inspect before using a real UniLiDAR bag." Plan only.
+
 ## Step 04 — Observe a bounded robot application (2:38, Docker or a ROS 2 station)
 
 ```bash
@@ -73,6 +86,17 @@ bash lab/04-simulate.sh
 
 It starts a fresh headless Gazebo world with a TurtleBot3 Burger on domain 78, waits for the controller, runs ten scenarios and shuts the world down: rejected speed, clear-path distance bound, obstacle stop, latched stop, dropped, invalid and untransformable scans, operator stop, time bound and a suspended controller caught by the independent watchdog. For each scenario, find the stop reason in the printed list. Which ones stop the robot even when no new sensor message arrives?
 
+In Claude Code (plan mode, after `/clear`):
+
+| Clock | Part | In Claude Code | Done when |
+|---|---|---|---|
+| 2:38 | 1 Start | Second terminal: `bash lab/04-simulate.sh` (about 40 s; no window opens) | `simulation: 10/10 scenarios pass` |
+| 2:38 | 2 Read the stop logic | "Read controller.py and guard.py in ros2/agentic_workshop/agentic_workshop. List every way the controller stops, with its reason value, and what guard.py does on its own." | You can name each reason and the guard's 0.30 s zero command |
+| 2:42 | 3 Predict, then check | Write your answer to the question above first. Then: "Open my latest capstone-report.json in runs/04-simulate. For each scenario give the final state and reason, and point to the line that set it." | You marked where your prediction was wrong |
+| 2:46 | 4 The safety point | "If the controller process froze mid-run, which code still stops the robot, and why is it a separate process?" | You can explain why no agent sits in this loop |
+
+Do not ask the agent to change speeds or stop distances in this hour; the simulator values are teaching settings, not a robot's stopping distance. Finished early: "Using skills/turtlebot-capstone/SKILL.md, propose one more scenario and the stop reason you expect." Building it is the take-home extension.
+
 ## Step 05 — Hand off (2:48)
 
 ```bash
@@ -80,6 +104,10 @@ bash lab/05-handoff.sh
 ```
 
 It drafts a run report from the results saved on this machine. Fill in every `[bracketed]` line: one check you did not run, your next bounded task and one sentence on whether spending more tokens helped your understanding. If steps 03–04 ran on a station, paste their summaries in. Q&A starts at 2:50.
+
+Write the three bracketed lines yourself: they are your judgment, and a handoff the agent wrote for you shows nothing. With time left, or at home, ask Claude Code to check it (plan mode, after `/clear`): "Read my run report and the files in runs/. Flag any claim that no saved result supports, and list contract checks none of my runs executed."
+
+Short on time in steps 03–05: start the run, skip reading the code and go straight to your report; one explained check or stop reason is the minimum.
 
 ## If you finish early: metadata inspection card
 
