@@ -38,6 +38,23 @@ It reruns the 12 checks, shows your diff against the baseline and fails if `exer
 
 Have a partner or a separate review conversation review against the contract. Record one finding or explain why no consequential finding was reproduced. Do not treat agreement as executed evidence.
 
+### Step 02 with Claude Code
+
+You decide; Claude Code does the work. It asks before it edits a file or runs a command: read each request before you approve it. Open two terminals in the workshop folder: run `claude` in the first (the driver types there) and `bash lab/02-repair.sh` in the second (the navigator runs the checks there, so the evidence comes from your terminal, not from the agent's summary). The prompts are the [prompt cards](prompt-cards.md); in Codex, use the same prompts and say "read-only" for passes 1, 4 and 5.
+
+| Clock | Part | In Claude Code | Done when |
+|---|---|---|---|
+| 2:10 | 1 Explain first | Press Shift+Tab until plan mode is on, so nothing can be edited. Paste: "Read exercises/clearance.py and run python3 -I exercises/check.py. Explain the failing behavior against the workbook contract first. Do not open the solution until I request it." | The explanation matches your step 01 prediction, or you know why it differs |
+| 2:14 | 2 Smallest fix | Shift+Tab out of plan mode. "Make the smallest fix in clearance.py that satisfies the contract. Preserve exercises/check.py; add any new cases in a separate file." Read the diff before you accept it; reject changes to `check.py` or to any constant and say why. Esc stops a reply that goes the wrong way. | You can say what each changed line does |
+| 2:17 | 3 Check it yourself | In the second terminal: `bash lab/02-repair.sh`. Repeat parts 2 and 3 until it passes. To start over: `git checkout lab-baseline -- exercises/clearance.py` | `All 12 checks pass`, a diff only in `clearance.py`, checker unchanged |
+| 2:18 | 4 Understand | Plan mode again. Paste the "Understand the PR" card, which names `skills/explain-robotics-pr/SKILL.md`. Write your answers to the three inputs above first, then: "Add these three as cases in exercises/my_cases.py and run it." | Your predictions are checked; any wrong one has a named missing assumption |
+| 2:24 | 5 Review fresh | `/clear` (or a new `claude` session), then paste the "Review" card | One finding written down, and whether it was run or only read |
+| 2:28 | 6 Swap and explain | Driver and navigator swap; the new navigator explains, without the agent, why the side wall now reads clear | The explanation holds without the agent |
+
+Short on time: parts 1–3 are required, and part 6 matters more than part 5. A passing run you cannot explain is not the end of step 02.
+
+The skills can also be started as `/explain-robotics-pr` and so on. Naming the file path, as the prompt cards do, works on every computer: Git for Windows usually checks out the `.claude/skills` links as plain files, so the slash commands may not appear there.
+
 ## Step 03 — Replay a real ROS topic (2:30, Docker or a ROS 2 station)
 
 ```bash

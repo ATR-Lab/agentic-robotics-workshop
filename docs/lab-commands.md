@@ -81,6 +81,7 @@ First, run the same step with `doctor` and follow its `Fix:` line. If that doesn
 | Docker Desktop on Windows: WSL 2 or virtualization unavailable | Virtualization off in the BIOS, or a virtual machine | Turn virtualization on; otherwise pair with a neighbour |
 | `simulator did not start` | Slow laptop, too little memory | Read the printed log lines; `clean`; rerun with `LAB_LAUNCH_TIMEOUT=240` |
 | Agent cannot sign in | No access or no network | Pair with a neighbour; steps 00–02 still work offline |
+| `/explain-robotics-pr` (or another skill) is not offered on Windows | Git for Windows checked out the `.claude/skills` links as plain files | Name the file instead, as the [prompt cards](prompt-cards.md) do: "Use skills/explain-robotics-pr/SKILL.md …" |
 
 No physical sensor or robot is used in any step. Steps 03 and 04 run the packaged reference code on an authored synthetic bag and a simulated TurtleBot3, not your edited file.
 
