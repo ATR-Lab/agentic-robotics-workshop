@@ -10,7 +10,7 @@ For Codex, open this repo and invoke `$robotics-orient` or select the relevant s
 
 ## ROS 2 on participant laptops (Docker)
 
-Steps 03 and 04 run on any laptop with Docker: Docker Desktop on Windows or macOS (OrbStack also works on a Mac), Docker Engine on Linux, with at least 4 GB of memory for Docker and about 6 GB of free disk. Ask participants to install it and pull the station image before the event, not over the room's network:
+Steps 03 and 04 run on any laptop with Docker: Docker Desktop on Windows or macOS (OrbStack also works on a Mac), Docker Engine on Linux, with at least 4 GB of memory for Docker and about 6 GB of free disk. Ask participants to install it and pull the station image before the event, not over the room's network. `scripts/install.sh` (macOS, Linux) and `scripts/install-windows.ps1` (Windows) do both, and install Python and Git; on Windows and macOS they run Docker Engine in a Linux VM (WSL 2, Colima) unless asked for Docker Desktop ([command sheet](lab-commands.md#before-the-workshop-15-minutes-needs-internet)). By hand:
 
 ```bash
 docker pull ghcr.io/atr-lab/agentic-workshop-station:2026.11

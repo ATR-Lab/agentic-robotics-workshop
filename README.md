@@ -51,7 +51,7 @@ bash lab/03-replay.sh
 bash lab/04-simulate.sh
 ```
 
-The image is public, so no sign-in is needed. Without access to the registry, build it from this folder with `docker build -t ghcr.io/atr-lab/agentic-workshop-station:2026.11 -f lab/docker/Dockerfile .` (about 10 minutes). The [command sheet](docs/lab-commands.md) covers every operating system and the problems people hit most.
+To install Python, Git and Docker Engine and pull the image in one go, run `bash scripts/install.sh` on macOS or Linux, or `scripts\install-windows.ps1` on Windows ([command sheet](docs/lab-commands.md#before-the-workshop-15-minutes-needs-internet)). The image is public, so no sign-in is needed. Without access to the registry, build it from this folder with `docker build -t ghcr.io/atr-lab/agentic-workshop-station:2026.11 -f lab/docker/Dockerfile .` (about 10 minutes). The [command sheet](docs/lab-commands.md) covers every operating system and the problems people hit most.
 
 ## What's inside
 
@@ -64,7 +64,7 @@ The image is public, so no sign-in is needed. Without access to the registry, bu
 | [`skills/`](skills) | Four agent skills for Codex and Claude Code; `.agents/skills` and `.claude/skills` link to them |
 | `templates/` | Interface contract and run report |
 | [`evidence/`](evidence) | Saved reports and environment records from Nov. 3–5, 2026 |
-| `scripts/` | Setup for an Ubuntu 24.04 ROS 2 station, and a fresh practice copy of this folder |
+| `scripts/` | Install scripts for participant laptops (macOS, Linux, Windows), setup for an Ubuntu 24.04 ROS 2 station, and a fresh practice copy of this folder |
 
 ## Use it with an agent
 

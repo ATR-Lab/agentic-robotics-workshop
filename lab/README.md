@@ -28,7 +28,7 @@ Steps 03 and 04 replay and simulate the packaged reference code, not your edited
 
 Steps 03 and 04 need ROS 2 Jazzy and Gazebo. On a computer with Docker (macOS, Windows or Linux, x86-64 or arm64) the scripts run those two steps in the station container, on your own copy of the folder; results still land in your `runs/`. On a Linux machine with ROS 2 Jazzy installed in `/opt/ros/jazzy`, they run directly instead.
 
-Before the lab, on each laptop:
+Before the lab, on each laptop, either run the install script (`bash scripts/install.sh` on macOS or Linux, `scripts\install-windows.ps1` on Windows; see the [command sheet](../docs/lab-commands.md)) or:
 
 1. Install and start [Docker Desktop](https://docs.docker.com/desktop/) (Windows and macOS; OrbStack also works on a Mac) or [Docker Engine](https://docs.docker.com/engine/install/) (Linux). Give Docker at least 4 GB of memory and keep about 6 GB of disk free.
 2. Pull the station image (about 1.2 GB; Docker picks the version for your processor):

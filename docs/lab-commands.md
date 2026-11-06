@@ -4,6 +4,19 @@ The lab runs 2–3 p.m. in six steps, one script each. This sheet gives the exac
 
 ## Before the workshop (15 minutes, needs internet)
 
+**Quickest: run the install script.** It installs Python 3, Git and Docker Engine (`docker-ce`, `docker-ce-cli`, `containerd.io`, `docker-buildx-plugin`, `docker-compose-plugin` from Docker's own repository), then pulls the station image. It prints every command it runs and can be run again safely.
+
+| | Run |
+|---|---|
+| macOS or Linux | `curl -fsSL https://raw.githubusercontent.com/ATR-Lab/agentic-robotics-workshop/main/scripts/install.sh \| bash` (or `bash scripts/install.sh` in the folder) |
+| Windows (PowerShell, not as administrator) | `irm https://raw.githubusercontent.com/ATR-Lab/agentic-robotics-workshop/main/scripts/install-windows.ps1 -OutFile install-windows.ps1`, then `powershell -ExecutionPolicy Bypass -File .\install-windows.ps1` |
+
+- **Linux** (Ubuntu, Debian, Fedora, RHEL and their relatives): asks for your password, removes packages that conflict with Docker's (such as `docker.io`) and adds you to the `docker` group. Log out and back in afterwards.
+- **macOS:** Docker Engine runs only on Linux, so the script runs it in a small Linux VM with [Colima](https://github.com/abiosoft/colima) (installed with Homebrew, which it installs if needed). After a restart, run `colima start` before the lab. A Docker that already works (OrbStack, Docker Desktop) is kept. `--desktop` installs Docker Desktop instead.
+- **Windows:** installs Python and Git with winget, WSL 2 with Ubuntu 24.04, and Docker Engine inside Ubuntu. It may ask you to restart and run it again, and to choose an Ubuntu user name and password. Then run **the whole lab from the Ubuntu 24.04 terminal**, with the workshop folder cloned in your Ubuntu home folder (not under `/mnt/c`), using the macOS and Linux commands below. `-DockerDesktop` installs Docker Desktop instead, for running every step from Git Bash or PowerShell.
+
+Or install by hand:
+
 | | macOS | Linux | Windows |
 |---|---|---|---|
 | Python 3.9+ and Git | `xcode-select --install` (gives `python3` and `git`) | `sudo apt install python3 git` (or your distribution's packages) | `winget install -e --id Python.Python.3.13` and `winget install -e --id Git.Git`, then open a new terminal |
@@ -26,7 +39,7 @@ docker build -t ghcr.io/atr-lab/agentic-workshop-station:2026.11 -f lab/docker/D
 
 - **macOS:** Terminal, then `cd ~/agentic-robotics-workshop` (or wherever you put it).
 - **Linux:** any terminal, then `cd` into the folder.
-- **Windows:** right-click the folder › **Open Git Bash here** (recommended). PowerShell or Command Prompt also work with the `py -3` commands below.
+- **Windows:** right-click the folder › **Open Git Bash here** (recommended). PowerShell or Command Prompt also work with the `py -3` commands below. If you used the install script's default, open **Ubuntu 24.04** from the Start menu instead and `cd` into the folder you cloned there.
 
 Then run step 00. If it shows no `FAIL` line, you are ready.
 
@@ -74,6 +87,8 @@ First, run the same step with `doctor` and follow its `Fix:` line. If that doesn
 | `the docker command was not found` | Docker not installed | Install it (table above); or pair with a neighbour for steps 03–04 |
 | `Docker is installed but its engine is not running` | Docker Desktop or OrbStack closed; Linux service stopped | Start it and wait until it says running; Linux: `sudo systemctl start docker` |
 | `permission denied` from Docker (Linux) | Not in the `docker` group | `sudo usermod -aG docker $USER`, then log out and back in |
+| Install script on Windows: `WSL is installed. Restart Windows` | WSL was just turned on | Restart, then run the script again |
+| `Cannot connect to the Docker daemon` on a Mac after a restart (install-script setup) | Colima is not running | `colima start` |
 | `docker pull` says `denied` or `unauthorized` | An old GitHub sign-in saved in Docker | `docker logout ghcr.io`, then pull again |
 | `the station image ... is not on this computer` | Image not pulled | `docker pull ghcr.io/atr-lab/agentic-workshop-station:2026.11`, or the build command above |
 | `Docker may use only N GB of memory` | Docker's memory limit is low | Raise it to 4 GB or more in Docker Desktop's Settings › Resources |
@@ -87,4 +102,4 @@ No physical sensor or robot is used in any step. Steps 03 and 04 run the package
 
 ## Tested so far
 
-November 4–5, 2026: all six steps on macOS (Apple Silicon, Docker through OrbStack) and Ubuntu 26.04 (x86-64, Docker Engine); steps 00, 01, 02 and 05 on Windows 11 ARM64 with Git Bash and with `py -3`. Steps 00, 03 and 04 again from a fresh clone of the public repository, with the image pulled without signing in, on the same Mac and Ubuntu computer. Not yet tested: Docker Desktop on Windows and on macOS. Details: [verification](verification.md).
+November 4–5, 2026: all six steps on macOS (Apple Silicon, Docker through OrbStack) and Ubuntu 26.04 (x86-64, Docker Engine); steps 00, 01, 02 and 05 on Windows 11 ARM64 with Git Bash and with `py -3`. Steps 00, 03 and 04 again from a fresh clone of the public repository, with the image pulled without signing in, on the same Mac and Ubuntu computer. November 6: the install script on fresh Ubuntu 24.04, Debian 13 and Fedora 43 machines (arm64), each ending with Docker Engine 29.9, Buildx and Compose; on Ubuntu, steps 00 and 03 then passed from a fresh clone without sudo. On a Mac that already had Docker, it kept it and pulled the image. The Windows script's Python and Git part ran on Windows 11 ARM64. Not yet tested: the Windows script's WSL and Docker part (that VM cannot run WSL 2), the macOS Colima route, and Docker Desktop on Windows and on macOS. Details: [verification](verification.md).
