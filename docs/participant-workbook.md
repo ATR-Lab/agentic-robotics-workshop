@@ -86,6 +86,19 @@ bash lab/04-simulate.sh
 
 It starts a fresh headless Gazebo world with a TurtleBot3 Burger on domain 78, waits for the controller, runs ten scenarios and shuts the world down: rejected speed, clear-path distance bound, obstacle stop, latched stop, dropped, invalid and untransformable scans, operator stop, time bound and a suspended controller caught by the independent watchdog. For each scenario, find the stop reason in the printed list. Which ones stop the robot even when no new sensor message arrives?
 
+**Watch the robot move.** Run the same step with `watch` instead:
+
+```bash
+bash lab/04-simulate.sh watch
+```
+
+Two windows open before the scenarios start: **Gazebo**, the simulated world with the robot and the obstacle, and **RViz**, what the robot senses. Press Enter once you can see the robot in both; when the scenarios finish, look around, then press Enter again to close them. The scenarios and the report are the same as `run`; the windows only watch and never send a command. In RViz:
+
+- Orange dots are the laser scan from the simulator (`/scan`); blue squares are the scan the controller actually receives (`/workshop/scan`). During the dropped, invalid and missing-transform scenarios the blue drops out or stops updating while the orange carries on: that is the injected fault.
+- White arrows trail the robot's odometry (`/odom`), so you can see each stop: the 0.45 m distance bound, the stop short of the obstacle and the short runs after a reset.
+
+The windows need a screen the container can draw on. A Linux desktop and Windows 11 (WSL or Docker Desktop) need nothing extra; a Mac needs XQuartz ([command sheet](lab-commands.md#watching-the-simulation-step-04-watch)). Everything is drawn in software, so the first frame can take a minute on a slow laptop. If the windows will not open, plain `bash lab/04-simulate.sh` still runs every scenario.
+
 In Claude Code (plan mode, after `/clear`):
 
 | Clock | Part | In Claude Code | Done when |

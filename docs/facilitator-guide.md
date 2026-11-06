@@ -18,7 +18,7 @@ Each step is a script in [lab/](../lab/README.md) with `run`, `doctor` and `help
 | 2:05–2:10 | 01 `bash lab/01-reproduce.sh` | Baseline commit; the starter fails 10/12; written prediction | Saved failing output |
 | 2:10–2:30 | 02 `bash lab/02-repair.sh` | Agent explains first, then the smallest fix; rerun after each edit; explain-back | 12/12, `check.py` unchanged, diff and a new predicted case |
 | 2:30–2:38 | 03 `bash lab/03-replay.sh` (station) | Synthetic bag through the reference node; read the nine checks | `runs/03-replay/<time>/replay-report.json` |
-| 2:38–2:48 | 04 `bash lab/04-simulate.sh` (station) | Fresh headless world; read each scenario's stop reason | `runs/04-simulate/<time>/capstone-report.json` |
+| 2:38–2:48 | 04 `bash lab/04-simulate.sh` (station), or `watch` to see it | Fresh world; read each scenario's stop reason. Run `watch` on the projector so the room sees the robot stop | `runs/04-simulate/<time>/capstone-report.json` |
 | 2:48–2:50 | 05 `bash lab/05-handoff.sh` | Fill the bracketed lines of the drafted run report | `runs/05-handoff/run-report-*.md` |
 | 2:50–3:00 | Q&A | One result, one limitation, next bounded task | |
 

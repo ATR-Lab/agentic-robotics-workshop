@@ -1,11 +1,12 @@
 """Step runner and doctor for the one-hour hands-on lab.
 
-Usage: python3 -I lab/lab.py STEP [run|doctor|help|clean]
+Usage: python3 -I lab/lab.py STEP [run|doctor|help|clean]   (step 04 also: watch)
 The shell scripts in lab/ call this file; Windows without Bash can call it directly.
 Standard library only, Python 3.9+. Steps 03 and 04 need ROS 2: on a computer with Docker they run in
 the station container (lab/docker/Dockerfile); on a prepared Linux station they run directly.
 """
 import datetime
+import functools
 import json
 import os
 import platform
@@ -28,7 +29,9 @@ BASELINE_TAG = 'lab-baseline'
 ROS_DISTRO = os.environ.get('LAB_ROS_DISTRO', 'jazzy')
 ROS_WS = Path(os.environ.get('LAB_ROS_WS', Path.home() / 'ros_ws')).expanduser()
 LEFTOVER_PATTERN = ('gz sim|ros_gz_bridge|parameter_bridge|robot_state_publisher|lib/agentic_workshop/'
-                    '|ros2 (launch|run) agentic_workshop|ros2 bag play')
+                    '|ros2 (launch|run) agentic_workshop|ros2 bag play|rviz2')
+RVIZ_CONFIG = ROOT / 'lab' / 'rviz' / 'capstone.rviz'
+GZ_GUI_CONFIG = ROOT / 'lab' / 'gazebo' / 'gui.config'
 IMAGE = os.environ.get('LAB_IMAGE', 'ghcr.io/atr-lab/agentic-workshop-station:2026.11')
 BUILD_COMMAND = f'docker build -t {IMAGE} -f lab/docker/Dockerfile .'
 COLOR = sys.stdout.isatty() and os.environ.get('NO_COLOR') is None and os.name != 'nt'
@@ -426,21 +429,93 @@ def host_timezone():
     return f'<{sign}{hours:02d}{minutes:02d}>{"-" if east > 0 else ""}{hours}:{minutes:02d}'
 
 
-def docker_command(step, action, interactive=False):
+def docker_command(step, action, interactive=False, extra=()):
     """The docker run command that performs a step inside the station container on this folder."""
     command = ['docker', 'run', '--rm', '--init', '--name', container_name(step), '--hostname', 'docker-station',
                '--shm-size', '1g', '--mount', f'type=bind,source={ROOT},target=/home/user/workshop',
                '-e', f'TZ={host_timezone()}', '-e', 'PYTHONUNBUFFERED=1']
     if interactive:
         command.append('-it')
-    for var in ('LAB_DOMAIN_ID', 'LAB_LAUNCH_TIMEOUT', 'NO_COLOR'):
+    for var in ('LAB_DOMAIN_ID', 'LAB_LAUNCH_TIMEOUT', 'LAB_VIEW_WAIT', 'NO_COLOR'):
         if var in os.environ:
             command += ['-e', f'{var}={os.environ[var]}']
     if platform.system() == 'Linux':
         # Write results as this user. Rootless Docker already maps the container's root to this user.
         rootless = 'rootless' in sh(['docker', 'info', '--format', '{{.SecurityOptions}}'])[1]
         command += ['--user', '0:0' if rootless else f'{os.getuid()}:{os.getgid()}', '-e', 'HOME=/tmp']
-    return command + [IMAGE, 'python3', '-I', 'lab/lab.py', step, action]
+    return command + list(extra) + [IMAGE, 'python3', '-I', 'lab/lab.py', step, action]
+
+
+def x11_docker_args(doc):
+    """Docker options that let the station container open windows on this computer's screen, or None."""
+    if platform.system() == 'Darwin':
+        return xquartz_docker_args(doc)
+    if os.name == 'nt':
+        # Docker Desktop on WSL 2 exposes WSLg's X server (Windows 11) at this path inside its VM.
+        doc.info('windows open through WSLg (Windows 11, Docker Desktop with the WSL 2 backend)')
+        return ['--mount', 'type=bind,source=/run/desktop/mnt/host/wslg/.X11-unix,target=/tmp/.X11-unix',
+                '-e', 'DISPLAY=:0', '-e', 'QT_X11_NO_MITSHM=1']
+    display = os.environ.get('DISPLAY', '')
+    if not display and Path('/mnt/wslg/.X11-unix').exists():
+        display = ':0'
+    if not display:
+        doc.fail('no screen to open windows on (DISPLAY is not set)',
+                 'run it from a terminal inside your desktop session, not over SSH; on Windows use WSL on Windows 11')
+        return None
+    match = re.fullmatch(r'(?:unix)?:(\d+)(?:\.\d+)?', display)
+    if not match:
+        doc.fail(f'DISPLAY={display} points at another computer or a forwarded SSH display',
+                 'run it from a terminal on the computer whose screen you are looking at')
+        return None
+    sockets = os.path.realpath('/tmp/.X11-unix')
+    if not (Path(sockets) / f'X{match.group(1)}').exists():
+        doc.fail(f'display {display} has no socket in /tmp/.X11-unix',
+                 'log in to a desktop session (X11 or Wayland with XWayland) and run it from a terminal there')
+        return None
+    args = ['--mount', f'type=bind,source={sockets},target=/tmp/.X11-unix',
+            '-e', f'DISPLAY=:{match.group(1)}', '-e', 'QT_X11_NO_MITSHM=1']
+    xauth = shutil.which('xauth')
+    if not xauth:
+        doc.warn('xauth is not installed, so the display may refuse the container',
+                 'if no window opens:  xhost +SI:localuser:$(id -un)   (or install xauth)')
+        return args
+    code, cookies = sh([xauth, 'nlist', display])
+    if code or not cookies.strip():
+        doc.ok(f'display {display} (no access cookie needed)')
+        return args
+    # The cookie names this computer; "ffff" makes it valid for any host name, such as the container's.
+    cookie = RUNS / '.x11' / 'xauthority'
+    cookie.parent.mkdir(parents=True, exist_ok=True)
+    cookie.unlink(missing_ok=True)
+    wild = ''.join('ffff' + line[4:] + '\n' for line in cookies.splitlines() if line.strip())
+    subprocess.run([xauth, '-f', str(cookie), 'nmerge', '-'], input=wild, text=True, capture_output=True)
+    cookie.chmod(0o600)
+    doc.ok(f'display {display}, with a copy of its access cookie in {cookie.relative_to(ROOT)}')
+    return args + ['--mount', f'type=bind,source={cookie},target=/tmp/.lab-xauthority,readonly',
+                   '-e', 'XAUTHORITY=/tmp/.lab-xauthority']
+
+
+def xquartz_docker_args(doc):
+    xhost = Path('/opt/X11/bin/xhost')
+    if not xhost.exists():
+        doc.fail('XQuartz is not installed; a Mac needs it to show Linux windows',
+                 'install it from https://www.xquartz.org (or  brew install --cask xquartz ), log out and back in, '
+                 'then run this again')
+        return None
+    code, out = sh(['defaults', 'read', 'org.xquartz.X11', 'nolisten_tcp'])
+    if out.strip() != '0':
+        doc.fail('XQuartz does not accept connections from containers',
+                 'XQuartz > Settings > Security: tick "Allow connections from network clients", '
+                 'then quit and reopen XQuartz')
+        return None
+    env = dict(os.environ, DISPLAY=os.environ.get('DISPLAY') or ':0')
+    if sh(['/opt/X11/bin/xset', 'q'], env=env)[0]:
+        doc.fail('XQuartz is not running', 'open XQuartz (Applications > Utilities), then run this again')
+        return None
+    show([xhost, '+localhost'])
+    sh([str(xhost), '+localhost'], env=env)
+    doc.ok('XQuartz accepts the container')
+    return ['-e', 'DISPLAY=host.docker.internal:0', '-e', 'QT_X11_NO_MITSHM=1']
 
 
 def doctor_in_docker(doc, step, need_sim):
@@ -457,12 +532,17 @@ def doctor_in_docker(doc, step, need_sim):
         doc.ok('the station container passes its own doctor')
 
 
-def run_in_docker(step, name, need_sim):
+def run_in_docker(step, name, need_sim, action='run'):
     doc = Doctor(f'{step} {name} · doctor (Docker station)')
     if not check_docker(doc, step, need_sim):
         return 1
-    print(paint(f'\n== {step} {name} · run in the station container', '1'))
-    command = docker_command(step, 'run', interactive=sys.stdin.isatty() and sys.stdout.isatty())
+    extra = ()
+    if action == 'watch':
+        extra = x11_docker_args(doc)
+        if extra is None:
+            return 1
+    print(paint(f'\n== {step} {name} · {action} in the station container', '1'))
+    command = docker_command(step, action, interactive=sys.stdin.isatty() and sys.stdout.isatty(), extra=extra)
     show(command)
     sys.stdout.flush()
     process = subprocess.Popen(command, cwd=ROOT)
@@ -681,25 +761,35 @@ def doctor_replay(step):
     return doc
 
 
-def run_ros_step(step, name, args, timeout, report_name, summarize, prepare=None):
+def run_ros_step(step, name, args, timeout, report_name, summarize, prepare=None, watch=False):
     doc = doctor_replay(step) if step == '03' else doctor_simulate(step)
+    if watch and not os.environ.get('DISPLAY'):
+        doc.fail('no screen to open windows on (DISPLAY is not set)',
+                 'run  watch  from a terminal in a desktop session, or use  run  to simulate without windows')
     if doc.failed:
         return 1
-    print(paint(f'\n== {step} {name} · run', '1'))
+    print(paint(f'\n== {step} {name} · {"watch" if watch else "run"}', '1'))
     domain = domain_for(step)
     out = RUNS / f'{step}-{name}' / stamp()
     out.parent.mkdir(parents=True, exist_ok=True)
     background = prepare(domain, out) if prepare else None
     if prepare and background is None:
         return 1
+    viewers = []
     try:
+        if watch:
+            viewers = start_viewers(domain, out)
         command = [*args, '--output', str(out)]
         show([f'ROS_DOMAIN_ID={domain}', *command])
         started = time.monotonic()
         code, text = ros(command, domain, timeout=timeout)
         print(text[-4000:])
         print(f'(finished in {time.monotonic() - started:.0f} s, exit {code})')
+        if watch and sys.stdin.isatty():
+            input(paint('\nThe scenarios are done. Look around in Gazebo and RViz, then press Enter to close them.', '1'))
     finally:
+        for viewer in viewers:
+            stop_background(viewer, quiet=True)
         if background:
             stop_background(background)
     report = out / report_name
@@ -710,7 +800,8 @@ def run_ros_step(step, name, args, timeout, report_name, summarize, prepare=None
         return 1
     passed, summary = summarize(json.loads(read(report)), code)
     evidence = ('authored synthetic PointCloud2 bag replayed through ROS 2' if step == '03'
-                else 'Gazebo TurtleBot3 Burger simulation (headless)')
+                else 'Gazebo TurtleBot3 Burger simulation' + (' (watched in the Gazebo client and RViz)' if watch
+                                                              else ' (headless)'))
     save_result(f'{step}-{name}', 'pass' if passed else 'fail', summary, [' '.join(command)], evidence,
                 [p.relative_to(ROOT) for p in sorted(out.iterdir())])
     print(paint(f'\n{summary}', '32' if passed else '31'))
@@ -791,7 +882,7 @@ def group_alive(pgid):
         return False
 
 
-def stop_background(background):
+def stop_background(background, quiet=False):
     """Stop the launch and everything in its process group, escalating to SIGKILL.
 
     Gazebo's server can outlive the launch process during start-up, so wait for the
@@ -811,7 +902,7 @@ def stop_background(background):
             process.poll()
             time.sleep(.2)
     handle.close()
-    if leftovers():
+    if not quiet and leftovers():
         print(paint('Some simulator processes are still running;', '33') + ' run  bash lab/04-simulate.sh clean')
 
 
@@ -831,11 +922,42 @@ def summarize_capstone(report, code):
     return passed, f'simulation: {passed_count}/{len(results)} scenarios pass' + ('' if report.get('complete') else ', run incomplete')
 
 
-def run_simulate(step):
+def run_simulate(step, watch=False):
     if station_route() == 'docker':
-        return run_in_docker(step, 'simulate', need_sim=True)
-    return run_ros_step(step, 'simulate', ['ros2', 'run', 'agentic_workshop', 'capstone_check'], 240,
-                        'capstone-report.json', summarize_capstone, prepare=start_capstone)
+        return run_in_docker(step, 'simulate', need_sim=True, action='watch' if watch else 'run')
+    # Rendering two windows in software slows a laptop, so the scenarios get more time when watched.
+    return run_ros_step(step, 'simulate', ['ros2', 'run', 'agentic_workshop', 'capstone_check'], 420 if watch else 240,
+                        'capstone-report.json', summarize_capstone, prepare=start_capstone, watch=watch)
+
+
+def start_viewers(domain, out):
+    """Open the Gazebo client and RViz on DISPLAY. Both only watch: neither publishes a command."""
+    code, prefix = ros(['ros2', 'pkg', 'prefix', 'turtlebot3_gazebo'], domain)
+    models = Path(prefix.strip().splitlines()[-1]) / 'share' / 'turtlebot3_gazebo' / 'models' if code == 0 else ''
+    env = dict(ros_env(domain), GZ_IP='127.0.0.1', GZ_PARTITION='agentic_workshop', LIBGL_ALWAYS_SOFTWARE='1',
+               QT_X11_NO_MITSHM='1', GZ_SIM_RESOURCE_PATH=str(models))
+    script = f'source /opt/ros/{ROS_DISTRO}/setup.bash && source "{ROS_WS}/install/setup.bash" && exec "$@"'
+    viewers = []
+    for label, command in (('gazebo', ['gz', 'sim', '-g', '--gui-config', str(GZ_GUI_CONFIG)]),
+                           ('rviz', ['rviz2', '-d', str(RVIZ_CONFIG), '--ros-args', '-p', 'use_sim_time:=true'])):
+        log = out / f'{label}.log'
+        show([*command, f'> {log.relative_to(ROOT)}'])
+        handle = log.open('w', encoding='utf-8')
+        viewers.append((subprocess.Popen(['bash', '-c', script, 'lab', *command], cwd=ROOT, env=env, stdout=handle,
+                                         stderr=subprocess.STDOUT, start_new_session=True), handle))
+    print('Two windows open: Gazebo (the simulated world) and RViz (what the robot senses: laser scan, odometry, '
+          'robot model).\nThey render in software, so the first frame can take a minute.')
+    echo = f'ROS_DOMAIN_ID={domain} ros2 topic echo /workshop/controller_status'
+    if platform.node() == 'docker-station':
+        echo = f'docker exec -it atr-lab-04 bash -c "source /opt/ros/{ROS_DISTRO}/setup.bash && {echo}"'
+    print(f'Live data from another terminal:  {echo}')
+    if sys.stdin.isatty():
+        input(paint('\nPress Enter when you can see the robot in both windows, and the scenarios start.', '1'))
+    else:
+        wait = int(os.environ.get('LAB_VIEW_WAIT', '30'))
+        print(f'Starting the scenarios in {wait} s.')
+        time.sleep(wait)
+    return viewers
 
 
 def doctor_handoff(step):
@@ -906,8 +1028,10 @@ def main(argv):
     name, purpose, run, doctor = STEPS[step]
     if action == 'help':
         station = ' Use  clean  to stop leftover processes.' if step in ('03', '04') else ''
+        watch = (' Use  watch  to open Gazebo and RViz windows and see the robot move while the scenarios run.'
+                 if step == '04' else '')
         print(f'Step {step} {name}: {purpose}\nUsage: bash lab/{SCRIPTS[step]} [run|doctor|help'
-              f'{"|clean" if station else ""}]  (default: run).{station}\n'
+              f'{"|clean" if station else ""}{"|watch" if watch else ""}]  (default: run).{station}{watch}\n'
               'Each run first runs its doctor, prints every command it executes and saves results in runs/.')
         return 0
     if action == 'clean' and step in ('03', '04'):
@@ -918,7 +1042,9 @@ def main(argv):
         if not isinstance(result, int):
             print('\n' + ('Fix the FAIL lines above, then run the doctor again.' if failed else 'All required checks pass.'))
         return int(failed)
-    if action != 'run':
+    if action == 'watch' and step == '04':
+        run = functools.partial(run_simulate, watch=True)
+    elif action != 'run':
         print(f'Unknown action {action!r}. Try: bash lab/{SCRIPTS[step]} help')
         return 2
     try:

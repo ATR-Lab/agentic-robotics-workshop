@@ -59,6 +59,7 @@ Every step takes the same extra words, in both columns:
 - `doctor`: check only and print what is wrong and how to fix it, for example `bash lab/03-replay.sh doctor` or `py -3 lab\lab.py 03 doctor`.
 - `help`: what the step does.
 - `clean` (steps 03 and 04): stop a leftover simulator or lab container.
+- `watch` (step 04): the same scenarios with Gazebo and RViz windows open, so you can see the robot move and what it senses. See [below](#watching-the-simulation-step-04-watch).
 
 Steps 03 and 04 start a fresh ROS 2 container on your laptop and remove it when they finish; Ctrl-C stops them cleanly. On a prepared Linux station with ROS 2 Jazzy installed they run directly instead, with no Docker.
 
@@ -69,6 +70,19 @@ Steps 03 and 04 start a fresh ROS 2 container on your laptop and remove it when 
 | macOS, Linux, Git Bash | `LAB_LAUNCH_TIMEOUT=240 bash lab/04-simulate.sh` |
 | PowerShell | `$env:LAB_LAUNCH_TIMEOUT=240; py -3 lab\lab.py 04` |
 | Command Prompt | `set LAB_LAUNCH_TIMEOUT=240 && py -3 lab\lab.py 04` |
+
+## Watching the simulation (step 04 `watch`)
+
+`bash lab/04-simulate.sh watch` (or `py -3 lab\lab.py 04 watch`) opens the Gazebo client and RViz from the station container on your screen through X11, then runs the ten scenarios.
+
+| Computer | What it needs |
+|---|---|
+| Linux desktop (X11, or Wayland with XWayland) | Nothing; run it from a terminal in your desktop session, not over SSH. The script lends the container a copy of your display's access cookie (in `runs/.x11/`). |
+| Windows 11, install script's default (Docker Engine in WSL) | Nothing; WSLg is the display. Run it from the Ubuntu terminal. Not yet tested. |
+| Windows 11, Docker Desktop | Nothing; the script uses WSLg through Docker Desktop. Windows 10 has no WSLg: use `run`. Not yet tested. |
+| macOS | [XQuartz](https://www.xquartz.org) (`brew install --cask xquartz`), then log out and back in. In XQuartz › Settings › Security, tick **Allow connections from network clients**, then quit and reopen XQuartz. The script runs `xhost +localhost` for you. Not yet tested. |
+
+Both windows render in software (no graphics card is passed to the container), so they are slower than a native app; the simulator keeps real time on a recent laptop. Press Enter when you can see the robot, and again to close the windows at the end.
 
 ## When something goes wrong
 
@@ -95,6 +109,10 @@ First, run the same step with `doctor` and follow its `Fix:` line. If that doesn
 | `an earlier lab container is still running` | A run was killed from outside | `bash lab/04-simulate.sh clean` (or `py -3 lab\lab.py 04 clean`) |
 | Docker Desktop on Windows: WSL 2 or virtualization unavailable | Virtualization off in the BIOS, or a virtual machine | Turn virtualization on; otherwise pair with a neighbour |
 | `simulator did not start` | Slow laptop, too little memory | Read the printed log lines; `clean`; rerun with `LAB_LAUNCH_TIMEOUT=240` |
+| `watch`: `XQuartz is not installed` or `does not accept connections` | Mac without XQuartz set up | See [Watching the simulation](#watching-the-simulation-step-04-watch); or use plain `bash lab/04-simulate.sh` |
+| `watch`: `no screen to open windows on` | Terminal opened over SSH, or no desktop session | Run it from a terminal on the computer's own desktop; or use plain `run` |
+| `watch`: windows never appear, `Authorization required` in `runs/04-simulate/<time>/gazebo.log` | The display refused the container | `xhost +SI:localuser:$(id -un)`, then run it again |
+| `watch`: windows stay grey or very slow | Software rendering on a busy laptop | Wait a minute; close other apps; the scenarios still pass, and plain `run` needs no windows |
 | Agent cannot sign in | No access or no network | Pair with a neighbour; steps 00–02 still work offline |
 | `/explain-robotics-pr` (or another skill) is not offered on Windows | Git for Windows checked out the `.claude/skills` links as plain files | Name the file instead, as the [prompt cards](prompt-cards.md) do: "Use skills/explain-robotics-pr/SKILL.md …" |
 
