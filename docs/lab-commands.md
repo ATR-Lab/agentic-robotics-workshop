@@ -82,7 +82,7 @@ Steps 03 and 04 start a fresh ROS 2 container on your laptop and remove it when 
 | Windows 11, Docker Desktop | Nothing; the script uses WSLg through Docker Desktop. Windows 10 has no WSLg: use `run`. Not yet tested. |
 | macOS | [XQuartz](https://www.xquartz.org) (`brew install --cask xquartz`), then log out and back in. In XQuartz › Settings › Security, tick **Allow connections from network clients**, then quit and reopen XQuartz. The script runs `xhost +localhost` for you. Not yet tested. |
 
-On Linux the script lends the container your graphics card (`/dev/dri`) when there is one (`LAB_GPU=0` turns that off); otherwise, and on macOS and Windows, both windows render in software at low priority, so they drop frames before the simulator falls behind. Before the scenarios start, the script checks the simulator's speed: below 80% of real time it offers to close the Gazebo window and keep RViz. Software rendering needs about two free CPU cores. Press Enter when you can see the robot, and again to close the windows at the end.
+Both windows render in software at low priority, so they drop frames before the simulator falls behind. On a Linux computer whose graphics card supports OpenGL 3.3 or newer, `LAB_GPU=1 bash lab/04-simulate.sh watch` lends it to the container instead; do not use it on a Raspberry Pi, whose graphics chip leaves the Gazebo window black. Before the scenarios start, the script checks the simulator's speed: below 80% of real time it offers to close the Gazebo window and keep RViz. Software rendering needs about two free CPU cores. Press Enter when you can see the robot, and again to close the windows at the end.
 
 ## When something goes wrong
 
@@ -112,6 +112,7 @@ First, run the same step with `doctor` and follow its `Fix:` line. If that doesn
 | `watch`: `XQuartz is not installed` or `does not accept connections` | Mac without XQuartz set up | See [Watching the simulation](#watching-the-simulation-step-04-watch); or use plain `bash lab/04-simulate.sh` |
 | `watch`: `no screen to open windows on` | Terminal opened over SSH, or no desktop session | Run it from a terminal on the computer's own desktop; or use plain `run` |
 | `watch`: windows never appear, `Authorization required` in `runs/04-simulate/<time>/gazebo.log` | The display refused the container | `xhost +SI:localuser:$(id -un)`, then run it again |
+| `watch`: Gazebo window stays black and RViz shows `Robot ... Error` | `LAB_GPU=1` on a graphics chip without OpenGL 3.3 (Raspberry Pi) | Ctrl-C, `bash lab/04-simulate.sh clean`, then run `watch` without `LAB_GPU=1` |
 | `watch`: windows stay grey or very slow | Software rendering on a busy laptop | Wait a minute; close other apps; plain `run` needs no windows |
 | `watch`: scenarios stop with `sensing_or_tf` and `run incomplete` | The simulator fell behind real time while drawing the windows, so scans arrived late and the controller stopped itself: its safety check working | Close the Gazebo window when asked, close other apps, or use plain `bash lab/04-simulate.sh` for the results and watch on the projector |
 | Agent cannot sign in | No access or no network | Pair with a neighbour; steps 00–02 still work offline |

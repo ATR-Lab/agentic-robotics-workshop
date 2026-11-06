@@ -496,10 +496,14 @@ def x11_docker_args(doc):
 
 
 def gpu_docker_args(doc):
-    """Lend the container this computer's graphics device, so the windows need not render in software."""
+    """With LAB_GPU=1, lend the container this computer's graphics device instead of rendering in software.
+
+    Opt-in: Gazebo's renderer needs OpenGL 3.3, and some graphics chips (a Raspberry Pi's, for one) offer less,
+    which leaves the Gazebo window black and RViz without the robot model.
+    """
     nodes = sorted(Path('/dev/dri').glob('*')) if Path('/dev/dri').is_dir() else []
-    if os.environ.get('LAB_GPU') == '0' or not nodes:
-        doc.info('the windows render in software (no graphics device lent to the container)')
+    if os.environ.get('LAB_GPU') != '1' or not nodes:
+        doc.info('the windows render in software (LAB_GPU=1 lends the container the graphics card instead)')
         return []
     groups = sorted({node.stat().st_gid for node in nodes})
     doc.ok('graphics device /dev/dri lent to the container')
@@ -951,7 +955,7 @@ def start_viewers(domain, out):
     models = Path(prefix.strip().splitlines()[-1]) / 'share' / 'turtlebot3_gazebo' / 'models' if code == 0 else ''
     env = dict(ros_env(domain), GZ_IP='127.0.0.1', GZ_PARTITION='agentic_workshop', QT_X11_NO_MITSHM='1',
                GZ_SIM_RESOURCE_PATH=str(models))
-    gpu = os.environ.get('LAB_GPU') != '0' and any(os.access(node, os.R_OK | os.W_OK)
+    gpu = os.environ.get('LAB_GPU') == '1' and any(os.access(node, os.R_OK | os.W_OK)
                                                    for node in Path('/dev').glob('dri/renderD*'))
     if not gpu:
         # Software rendering on few threads and at low priority, so the simulator keeps real time and the

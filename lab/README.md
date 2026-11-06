@@ -77,7 +77,7 @@ Each run starts a fresh container named `atr-lab-03` or `atr-lab-04` and removes
 | `LAB_ROS_DISTRO` | `jazzy` | ROS 2 distribution under `/opt/ros` |
 | `LAB_ROS_WS` | `~/ros_ws` | Built workspace containing `agentic_workshop` (see `scripts/boat-build.sh`) |
 | `LAB_LAUNCH_TIMEOUT` | 120 | Seconds to wait for the simulator to come up |
-| `LAB_GPU` | automatic | `0` stops step 04 `watch` from lending the container the Linux graphics device (`/dev/dri`) |
+| `LAB_GPU` | unset | `1` lends step 04 `watch` the Linux graphics device (`/dev/dri`) instead of software rendering; needs OpenGL 3.3, so not on a Raspberry Pi |
 | `LAB_VIEW_WAIT` | 30 | Step 04 `watch` without a terminal: seconds to let the windows open before the scenarios start (with a terminal it waits for Enter) |
 | `LAB_STATION` | automatic | `docker` or `native` to choose how steps 03 and 04 run; automatic uses native ROS 2 when installed, otherwise Docker |
 | `LAB_IMAGE` | `ghcr.io/atr-lab/agentic-workshop-station:2026.11` | Station image for the Docker route |
