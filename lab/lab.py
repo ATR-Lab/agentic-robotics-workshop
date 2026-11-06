@@ -436,7 +436,7 @@ def docker_command(step, action, interactive=False, extra=()):
                '-e', f'TZ={host_timezone()}', '-e', 'PYTHONUNBUFFERED=1']
     if interactive:
         command.append('-it')
-    for var in ('LAB_DOMAIN_ID', 'LAB_LAUNCH_TIMEOUT', 'LAB_VIEW_WAIT', 'NO_COLOR'):
+    for var in ('LAB_DOMAIN_ID', 'LAB_LAUNCH_TIMEOUT', 'LAB_VIEW_WAIT', 'LAB_GPU', 'NO_COLOR'):
         if var in os.environ:
             command += ['-e', f'{var}={os.environ[var]}']
     if platform.system() == 'Linux':
@@ -473,7 +473,7 @@ def x11_docker_args(doc):
                  'log in to a desktop session (X11 or Wayland with XWayland) and run it from a terminal there')
         return None
     args = ['--mount', f'type=bind,source={sockets},target=/tmp/.X11-unix',
-            '-e', f'DISPLAY=:{match.group(1)}', '-e', 'QT_X11_NO_MITSHM=1']
+            '-e', f'DISPLAY=:{match.group(1)}', '-e', 'QT_X11_NO_MITSHM=1', *gpu_docker_args(doc)]
     xauth = shutil.which('xauth')
     if not xauth:
         doc.warn('xauth is not installed, so the display may refuse the container',
@@ -493,6 +493,17 @@ def x11_docker_args(doc):
     doc.ok(f'display {display}, with a copy of its access cookie in {cookie.relative_to(ROOT)}')
     return args + ['--mount', f'type=bind,source={cookie},target=/tmp/.lab-xauthority,readonly',
                    '-e', 'XAUTHORITY=/tmp/.lab-xauthority']
+
+
+def gpu_docker_args(doc):
+    """Lend the container this computer's graphics device, so the windows need not render in software."""
+    nodes = sorted(Path('/dev/dri').glob('*')) if Path('/dev/dri').is_dir() else []
+    if os.environ.get('LAB_GPU') == '0' or not nodes:
+        doc.info('the windows render in software (no graphics device lent to the container)')
+        return []
+    groups = sorted({node.stat().st_gid for node in nodes})
+    doc.ok('graphics device /dev/dri lent to the container')
+    return ['--device', '/dev/dri', *[arg for gid in groups for arg in ('--group-add', str(gid))]]
 
 
 def xquartz_docker_args(doc):
@@ -806,6 +817,10 @@ def run_ros_step(step, name, args, timeout, report_name, summarize, prepare=None
                 [p.relative_to(ROOT) for p in sorted(out.iterdir())])
     print(paint(f'\n{summary}', '32' if passed else '31'))
     print(f'Report: {report.relative_to(ROOT)}')
+    if watch and not passed:
+        print('With windows open, a slow computer can fall behind real time; the controller then sees late scans '
+              'and stops itself (sensing_or_tf). That is its safety check working. For the scenario results, run  '
+              f'bash lab/{SCRIPTS[step]}  without  watch .')
     return 0 if passed else 1
 
 
@@ -934,8 +949,14 @@ def start_viewers(domain, out):
     """Open the Gazebo client and RViz on DISPLAY. Both only watch: neither publishes a command."""
     code, prefix = ros(['ros2', 'pkg', 'prefix', 'turtlebot3_gazebo'], domain)
     models = Path(prefix.strip().splitlines()[-1]) / 'share' / 'turtlebot3_gazebo' / 'models' if code == 0 else ''
-    env = dict(ros_env(domain), GZ_IP='127.0.0.1', GZ_PARTITION='agentic_workshop', LIBGL_ALWAYS_SOFTWARE='1',
-               QT_X11_NO_MITSHM='1', GZ_SIM_RESOURCE_PATH=str(models))
+    env = dict(ros_env(domain), GZ_IP='127.0.0.1', GZ_PARTITION='agentic_workshop', QT_X11_NO_MITSHM='1',
+               GZ_SIM_RESOURCE_PATH=str(models))
+    gpu = os.environ.get('LAB_GPU') != '0' and any(os.access(node, os.R_OK | os.W_OK)
+                                                   for node in Path('/dev').glob('dri/renderD*'))
+    if not gpu:
+        # Software rendering on few threads and at low priority, so the simulator keeps real time and the
+        # windows drop frames instead.
+        env.update(LIBGL_ALWAYS_SOFTWARE='1', LP_NUM_THREADS='1')
     script = f'source /opt/ros/{ROS_DISTRO}/setup.bash && source "{ROS_WS}/install/setup.bash" && exec "$@"'
     viewers = []
     for label, command in (('gazebo', ['gz', 'sim', '-g', '--gui-config', str(GZ_GUI_CONFIG)]),
@@ -943,10 +964,12 @@ def start_viewers(domain, out):
         log = out / f'{label}.log'
         show([*command, f'> {log.relative_to(ROOT)}'])
         handle = log.open('w', encoding='utf-8')
-        viewers.append((subprocess.Popen(['bash', '-c', script, 'lab', *command], cwd=ROOT, env=env, stdout=handle,
+        viewers.append((subprocess.Popen(['nice', '-n', '15', 'bash', '-c', script, 'lab', *command], cwd=ROOT, env=env,
+                                         stdout=handle,
                                          stderr=subprocess.STDOUT, start_new_session=True), handle))
     print('Two windows open: Gazebo (the simulated world) and RViz (what the robot senses: laser scan, odometry, '
-          'robot model).\nThey render in software, so the first frame can take a minute.')
+          'robot model).\n' + ('They use the graphics card.' if gpu else
+                               'They render in software, so the first frame can take a minute.'))
     echo = f'ROS_DOMAIN_ID={domain} ros2 topic echo /workshop/controller_status'
     if platform.node() == 'docker-station':
         echo = f'docker exec -it atr-lab-04 bash -c "source /opt/ros/{ROS_DISTRO}/setup.bash && {echo}"'
@@ -957,7 +980,44 @@ def start_viewers(domain, out):
         wait = int(os.environ.get('LAB_VIEW_WAIT', '30'))
         print(f'Starting the scenarios in {wait} s.')
         time.sleep(wait)
-    return viewers
+    return keep_real_time(viewers, env)
+
+
+def real_time_factor(env):
+    """The simulator's speed as a fraction of real time (median of five readings), or None."""
+    script = f'source /opt/ros/{ROS_DISTRO}/setup.bash && exec "$@"'
+    code, out = sh(['bash', '-c', script, 'lab', 'gz', 'topic', '-e', '-n', '5', '-t', '/world/workshop/stats'],
+                   timeout=20, env=env)
+    values = sorted(float(v) for v in re.findall(r'real_time_factor:\s*([0-9.eE+-]+)', out))
+    return values[len(values) // 2] if values else None
+
+
+def keep_real_time(viewers, env):
+    """Close the Gazebo window if drawing it keeps the simulator from running in real time.
+
+    The controller stops when a scan is more than 0.5 s old by the wall clock, so a simulator that falls
+    behind real time makes it stop with sensing_or_tf: the safety check doing its job, not a passing scenario.
+    """
+    rtf = real_time_factor(env)
+    if rtf is None:
+        return viewers
+    print(f'Simulator speed: {rtf:.0%} of real time.')
+    if rtf >= 0.8:
+        return viewers
+    print(paint('This computer cannot draw both windows and keep the simulator in real time. Below about 80%, '
+                'scans arrive late and the controller stops itself (sensing_or_tf).', '33'))
+    close = True
+    if sys.stdin.isatty():
+        close = input('Close the Gazebo window and keep RViz? [Y/n] ').strip().lower() not in ('n', 'no')
+    if not close:
+        return viewers
+    print('Closing the Gazebo window; RViz still shows the robot, its scans and its odometry.')
+    stop_background(viewers[0], quiet=True)
+    time.sleep(2)
+    rtf = real_time_factor(env)
+    if rtf is not None:
+        print(f'Simulator speed now: {rtf:.0%} of real time.')
+    return viewers[1:]
 
 
 def doctor_handoff(step):
